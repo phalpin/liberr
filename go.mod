@@ -1,4 +1,4 @@
-module liberr
+module github.com/phalpin/liberr
 
 go 1.15
 
