@@ -2,7 +2,7 @@ package liberr
 
 import (
 	"bytes"
-	"liberr/errortype"
+	"net/http"
 	"runtime/debug"
 )
 
@@ -10,7 +10,7 @@ import (
 type Error struct {
 	Message    string
 	StackTrace string
-	ErrorType  errortype.ErrorType
+	ErrorType  ErrorType
 }
 
 type KnownError struct {
@@ -61,6 +61,28 @@ func New(msg string, opts ...Option) *Error {
 
 func NewFromError(err error, opts ...Option) *Error {
 	return New(err.Error(), opts...)
+}
+
+//#endregion
+
+//#region ErrorType
+type ErrorType int64
+
+const (
+	Unknown ErrorType = 0 + iota
+	NotFound
+	InvalidArgument
+)
+
+func (et ErrorType) ToHttpStatusCode() int {
+	switch et {
+	case NotFound:
+		return http.StatusNotFound
+	case InvalidArgument:
+		return http.StatusBadRequest
+	default:
+		return http.StatusInternalServerError
+	}
 }
 
 //#endregion

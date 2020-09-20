@@ -1,14 +1,12 @@
 package liberr
 
-import "liberr/errortype"
-
 type options struct {
-	errorType errortype.ErrorType
+	errorType ErrorType
 }
 
 type Option = func(opts *options)
 
-func WithErrorType(errType errortype.ErrorType) Option {
+func WithErrorType(errType ErrorType) Option {
 	return func(opts *options) {
 		opts.errorType = errType
 	}
