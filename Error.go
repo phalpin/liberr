@@ -2,26 +2,31 @@ package liberr
 
 import (
 	"bytes"
-	"net/http"
+	"github.com/phalpin/liberr/errortype"
 	"runtime/debug"
 )
 
 //#region Error Structs
-type Error struct {
+
+type BaseError struct {
 	Message    string
 	StackTrace string
-	ErrorType  ErrorType
+	ErrorType  errortype.ErrorType
 }
 
 type KnownError struct {
-	*Error
+	*BaseError
 	FriendlyMessage string
 }
 
 //#endregion
 
 //#region Required Implementation for Error
-func (err *Error) Error() string {
+func (err *BaseError) Error() string {
+	return err.Message
+}
+
+func (err *KnownError) Error() string {
 	return err.Message
 }
 
@@ -33,10 +38,10 @@ func NewKnownFromErr(err error, friendlyMsg string, opts ...Option) *KnownError 
 }
 
 func NewKnown(msg string, friendlyMsg string, opts ...Option) *KnownError {
-	baseErr := New(msg, opts...)
+	baseErr := NewBase(msg, opts...)
 
 	retVal := &KnownError{
-		Error:           baseErr,
+		BaseError:       baseErr,
 		FriendlyMessage: friendlyMsg,
 	}
 
@@ -46,7 +51,7 @@ func NewKnown(msg string, friendlyMsg string, opts ...Option) *KnownError {
 //#endregion
 
 //#region Base Error Inits
-func New(msg string, opts ...Option) *Error {
+func NewBase(msg string, opts ...Option) *BaseError {
 	options := &options{}
 
 	if opts != nil {
@@ -57,7 +62,7 @@ func New(msg string, opts ...Option) *Error {
 
 	buf := new(bytes.Buffer)
 	buf.Write(debug.Stack())
-	retVal := &Error{
+	retVal := &BaseError{
 		Message:    msg,
 		StackTrace: buf.String(),
 		ErrorType:  options.errorType,
@@ -66,30 +71,8 @@ func New(msg string, opts ...Option) *Error {
 	return retVal
 }
 
-func NewFromError(err error, opts ...Option) *Error {
-	return New(err.Error(), opts...)
-}
-
-//#endregion
-
-//#region ErrorType
-type ErrorType int64
-
-const (
-	Unknown ErrorType = 0 + iota
-	NotFound
-	InvalidArgument
-)
-
-func (et ErrorType) ToHttpStatusCode() int {
-	switch et {
-	case NotFound:
-		return http.StatusNotFound
-	case InvalidArgument:
-		return http.StatusBadRequest
-	default:
-		return http.StatusInternalServerError
-	}
+func NewBaseFromError(err error, opts ...Option) *BaseError {
+	return NewBase(err.Error(), opts...)
 }
 
 //#endregion
