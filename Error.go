@@ -20,6 +20,13 @@ type KnownError struct {
 
 //#endregion
 
+//#region Required Implementation for Error
+func (err *Error) Error() string {
+	return err.Message
+}
+
+//#endregion
+
 //#region Known Error Inits
 func NewKnownFromErr(err error, friendlyMsg string, opts ...Option) *KnownError {
 	return NewKnown(err.Error(), friendlyMsg, opts...)
